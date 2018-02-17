@@ -15,5 +15,5 @@
       "psr-4": {
         "ZTomesic\\PDFExtractor\\": "packages/ztomesic/pdfextractor/src"
       }
-    },
+    }
 }
