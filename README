@@ -33,7 +33,6 @@ use ZTomesic\PDFExtractor\PDFExtractor;
 Split a PDF file into one file per page.
 
 ```php
-
 $file = new File('/file/location/file.pdf');
 
 PDFExtractor::burst($file, '/location/where/to/burst/');
@@ -45,7 +44,6 @@ PDFExtractor::burst($file, '/location/where/to/burst/');
 Concatenate pages from several PDF files into a new PDF file.
 
 ```php
-
 $file = new File('/file/location/file.pdf');
 
 PDFExtractor::cat(/location/of/pdf/files/, '*.pdf', 'location/where/to/save/name_of_new_file.pdf');
@@ -57,8 +55,8 @@ PDFExtractor::cat(/location/of/pdf/files/, '*.pdf', 'location/where/to/save/name
 Concatenate pages from several PDF files into a new PDF file.
 
 ```php
-
 $file = new File('/file/location/file.pdf');
+
 PDFExtractor::pdfToText($file);
 
 ```
@@ -68,8 +66,8 @@ PDFExtractor::pdfToText($file);
 Search PDF file by keywoard(s).
 
 ```php
-
 $file = new File('/file/location/file.pdf');
+
 PDFExtractor::searchPDF($file, 'wordToSearchBy');
 
 ```
@@ -79,8 +77,8 @@ PDFExtractor::searchPDF($file, 'wordToSearchBy');
 Rebuild PDF(s) by keyword(s)
 
 ```php
-
 $file = new File('/file/location/file.pdf');
+
 PDFExtractor::rebuildPDFByKeyword(File $file, '/location/where/to/burst/', /location/where/to/rebuild/, 'keyword_to_rebuild_by');
 
 ```
@@ -90,8 +88,8 @@ PDFExtractor::rebuildPDFByKeyword(File $file, '/location/where/to/burst/', /loca
 Change location of specific file
 
 ```php
-
 $file = new File('/file/location/file.pdf');
+
 PDFExtractor::relocateFile($file, '/new/file/path/');
 
 ```
@@ -101,9 +99,9 @@ PDFExtractor::relocateFile($file, '/new/file/path/');
 Delete all content from file.
 
 ```php
-
 $file = new File('/file/location/file.pdf');
 $excludedFiles = ['excluded_file.pdf'];
+
 PDFExtractor::clearFolder('/path/to/directory/', $excludedFiles);
 
 ```
@@ -113,7 +111,6 @@ PDFExtractor::clearFolder('/path/to/directory/', $excludedFiles);
 Create new directory.
 
 ```php
-
 PDFExtractor::createDirectory('/path/to/directory/name/');
 
 ```
