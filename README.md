@@ -79,7 +79,7 @@ Rebuild PDF(s) by keyword(s)
 ```php
 $file = new File('/file/location/file.pdf');
 
-PDFExtractor::rebuildPDFByKeyword(File $file, '/location/where/to/burst/', '/location/where/to/rebuild/, 'keyword_to_rebuild_by');
+PDFExtractor::rebuildPDFByKeyword(File $file, '/location/where/to/burst/', '/location/where/to/rebuild/', 'keyword_to_rebuild_by');
 
 ```
 
