@@ -1,0 +1,12 @@
+{
+    "name": "ztomesic/pdfextractor",
+    "description": "Easy way to split PDF",
+    "authors": [
+        {
+            "name": "Zvonimir Tomesic",
+            "email": "t.zvonimir@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
