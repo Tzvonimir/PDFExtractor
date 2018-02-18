@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Tzvonimir/PDFExtractor.svg?branch=master)](https://travis-ci.org/Tzvonimir/PDFExtractor)
+
 A PDF manipulator based on pdftk.
 
 ## Features
