@@ -9,17 +9,26 @@ class PDFExtractor
     /**
      * Split PDF into multiple one page PDF files.
      *
-     * @param file $file
+     * @param File|PDF|string $file
      * @param string $outputLocation
      *
      */
-    public static function burst(File $file, $outputLocation = null)
+    public static function burst($file, $outputLocation = null)
     {
-        if ($outputLocation) {
-            $outputLocation = $outputLocation . 'pdf_%02d.pdf';
-            shell_exec( 'pdftk ' . $file->getPath() . '/' . $file->getFilename() . ' burst output ' . $outputLocation);
+        if($file instanceof File || $file instanceof PDF) {
+            if ($outputLocation) {
+                $outputLocation = $outputLocation . 'pdf_%02d.pdf';
+                shell_exec('pdftk ' . $file->getPath() . '/' . $file->getFilename() . ' burst output ' . $outputLocation);
+            } else {
+                shell_exec('pdftk ' . $file->getPath() . '/' . $file->getFilename() . ' burst');
+            }
         } else {
-            shell_exec( 'pdftk ' . $file->getPath() . '/' . $file->getFilename() . ' burst');
+            if ($outputLocation) {
+                $outputLocation = $outputLocation . 'pdf_%02d.pdf';
+                shell_exec('pdftk ' . $file . ' burst output ' . $outputLocation);
+            } else {
+                shell_exec('pdftk ' . $file . ' burst');
+            }
         }
     }
 
@@ -47,14 +56,14 @@ class PDFExtractor
     /**
      * Convert PDF to string.
      *
-     * @param file|string $location
+     * @param File|PDF|string $location
      *
      * @return string|array $pdfText
      */
     public static function pdfToText($location)
     {
         $pdfToText = new PDFToText();
-        if($location instanceof File) {
+        if($location instanceof File || $location instanceof PDF) {
             return $pdfToText->pdf2text($location->getPath() . '/' . $location->getFilename());
         } else {
             $pdfText = [];
@@ -79,17 +88,16 @@ class PDFExtractor
     /**
      * Search PDF for specific keyword(s).
      *
-     * @param file $file
+     * @param File|PDF $file
      * @param string $keyword
      *
      * @return boolean
      */
-    public static function searchPDF(File $file, $keyword)
+    public static function searchPDF($file, $keyword)
     {
-        if($file instanceof File) {
+        if($file instanceof File || $file instanceof PDF) {
             $pdfContent = self::pdfToText($file);
-
-            if(strpos($pdfContent, $keyword)) {
+            if (strpos($pdfContent, $keyword)) {
                 return true;
             }
         }
@@ -100,13 +108,17 @@ class PDFExtractor
     /**
      * Change location of File.
      *
-     * @param file $file
+     * @param File|PDF|string $file
      * @param string $path
      */
-    public static function relocateFile(File $file, $path)
+    public static function relocateFile($file, $path)
     {
         self::createDirectory($path);
-        rename($file->getPath() . '/' . $file->getFilename(), $path . $file->getFilename());
+        if($file instanceof File || $file instanceof PDF) {
+            rename($file->getPath() . '/' . $file->getFilename(), $path . $file->getFilename());
+        } else {
+            rename($file, $path . substr($file, strrpos($file, '/') + 1));
+        }
     }
 
     /**
@@ -124,6 +136,25 @@ class PDFExtractor
     }
 
     /**
+     * Remove directory and content.
+     *
+     * @param string $path
+     */
+    public static function removeDirectory($path) {
+        if(is_dir($path)){
+            $files = glob( $path . '*', GLOB_MARK );
+
+            foreach( $files as $file ) {
+                self::removeDirectory($file);
+            }
+            rmdir( $path );
+        } elseif(is_file($path)) {
+            unlink( $path );
+        }
+    }
+
+
+    /**
      * Create new directory.
      *
      * @param string $path
@@ -138,12 +169,12 @@ class PDFExtractor
     /**
      * Rebuild PDF by keyword(s).
      *
-     * @param file $file
+     * @param File|PDF $file
      * @param string $burstPath
      * @param string $rebuildPath
-     * @param array|string $keyword
+     * @param array $keyword
      */
-    public static function rebuildPDFByKeyword(File $file, $burstPath, $rebuildPath, $keyword) {
+    public static function rebuildPDFByKeyword($file, $burstPath, $rebuildPath, Array $keyword) {
         self::burst($file, $burstPath);
         self::createDirectory($rebuildPath);
 
@@ -154,7 +185,7 @@ class PDFExtractor
         //Loop through the array that glob returned.
         foreach($fileList as $filename){
             if(finfo_file($finfo, $filename) === 'application/pdf') {
-                $file = new File($filename);
+                $file = new PDF($filename);
                 if(is_array($keyword)) {
                     foreach ($keyword as $key) {
                         $rebuildLocation = $rebuildPath . $key . '/';
