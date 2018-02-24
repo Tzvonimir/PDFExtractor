@@ -16,7 +16,7 @@ class PDF
         $this->path = realpath($path);
     }
 
-    public function getFulLPath()
+    public function getFullPath()
     {
         return $this->path;
     }

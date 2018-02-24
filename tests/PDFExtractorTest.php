@@ -12,9 +12,8 @@ class PDFExtractorTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testShouldBurstFile() {
-        PDFExtractor::createDirectory(__DIR__ . '/test/');
         $file = new PDF($this->getTestDocument());
-        PDFExtractor::burst($file, __DIR__ . '/test/');
+        PDFExtractor::burst($file)->save( __DIR__ . '/test/');
         $this->assertFileExists(__DIR__ . '/test/');
         $this->assertFileExists(__DIR__ . '/test/pdf_01.pdf');
         $this->assertFileExists(__DIR__ . '/test/pdf_02.pdf');
@@ -24,7 +23,7 @@ class PDFExtractorTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testShouldCatFiles() {
-        PDFExtractor::cat(__DIR__ . '/test/', '*.pdf', __DIR__ . '/test/new.pdf');
+        PDFExtractor::cat(__DIR__ . '/test/', '*.pdf')->save(__DIR__ . '/test/', 'new.pdf');
         $this->assertFileExists(__DIR__ . '/test/new.pdf');
     }
 
@@ -39,7 +38,7 @@ class PDFExtractorTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testShouldDeleteAllFromDirectory() {
-        PDFExtractor::clearFolder(__DIR__ . '/test/');
+        PDFExtractor::clearFolder(__DIR__ . '/test');
         $this->assertFileNotExists(__DIR__ . '/test/new.pdf');
     }
 

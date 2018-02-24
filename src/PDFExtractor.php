@@ -4,32 +4,21 @@ namespace ZTomesic\PDFExtractor;
 
 use Illuminate\Http\File;
 
-class PDFExtractor
+class PDFExtractor extends Builder
 {
+
     /**
      * Split PDF into multiple one page PDF files.
      *
      * @param File|PDF|string $file
-     * @param string $outputLocation
      *
+     * @return $this
      */
-    public static function burst($file, $outputLocation = null)
+    public static function burst($file)
     {
-        if($file instanceof File || $file instanceof PDF) {
-            if ($outputLocation) {
-                $outputLocation = $outputLocation . 'pdf_%02d.pdf';
-                shell_exec('pdftk ' . $file->getPath() . '/' . $file->getFilename() . ' burst output ' . $outputLocation);
-            } else {
-                shell_exec('pdftk ' . $file->getPath() . '/' . $file->getFilename() . ' burst');
-            }
-        } else {
-            if ($outputLocation) {
-                $outputLocation = $outputLocation . 'pdf_%02d.pdf';
-                shell_exec('pdftk ' . $file . ' burst output ' . $outputLocation);
-            } else {
-                shell_exec('pdftk ' . $file . ' burst');
-            }
-        }
+        self::getInstance();
+
+        return self::$_instance->splitPDF($file);
     }
 
     /**
@@ -37,20 +26,14 @@ class PDFExtractor
      *
      * @param string $path
      * @param string|array $fileNames
-     * @param string $newFileName
      *
+     * @return $this
      */
-    public static function cat($path = '', $fileNames = '*.pdf', $newFileName = 'new.pdf')
+    public static function cat($path = '', $fileNames = '*.pdf')
     {
-        if(is_array($fileNames)) {
-            foreach ($fileNames as $fileName) {
-                $path = $path . ' ' . $fileName;
-            }
-        } else {
-            $path = $path . $fileNames;
-        }
+        self::getInstance();
 
-        shell_exec('pdftk ' .  $path .  ' cat output ' . $newFileName);
+        return self::$_instance->mergePDF($path, $fileNames);
     }
 
     /**
@@ -60,29 +43,11 @@ class PDFExtractor
      *
      * @return string|array $pdfText
      */
-    public static function pdfToText($location)
+    public static function PDFToText($location)
     {
-        $pdfToText = new PDFToText();
-        if($location instanceof File || $location instanceof PDF) {
-            return $pdfToText->pdf2text($location->getPath() . '/' . $location->getFilename());
-        } else {
-            $pdfText = [];
+        self::getInstance();
 
-            //Get a list of file paths using the glob function.
-            $fileList = glob($location . '*');
-
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            //Loop through the array that glob returned.
-            foreach($fileList as $filename){
-
-                if(finfo_file($finfo, $filename) === 'application/pdf') {
-                    //dd($location . '/' . $filename);
-                    $pdfText[] = $pdfToText->pdf2text($filename);
-                }
-            }
-            finfo_close($finfo);
-            return $pdfText;
-        }
+        return self::$_instance->convertPDFToText($location);
     }
 
     /**
@@ -95,14 +60,9 @@ class PDFExtractor
      */
     public static function searchPDF($file, $keyword)
     {
-        if($file instanceof File || $file instanceof PDF) {
-            $pdfContent = self::pdfToText($file);
-            if (strpos($pdfContent, $keyword)) {
-                return true;
-            }
-        }
+        self::getInstance();
 
-        return false;
+        return self::$_instance->searchPDFByKeywords($file, $keyword);
     }
 
     /**
@@ -110,15 +70,15 @@ class PDFExtractor
      *
      * @param File|PDF|string $file
      * @param string $path
+     *
+     * @return $this
      */
     public static function relocateFile($file, $path)
     {
-        self::createDirectory($path);
-        if($file instanceof File || $file instanceof PDF) {
-            rename($file->getPath() . '/' . $file->getFilename(), $path . $file->getFilename());
-        } else {
-            rename($file, $path . substr($file, strrpos($file, '/') + 1));
-        }
+        self::getInstance();
+        self::$_instance->changeFileLocation($path, $file);
+
+        return self::$_instance;
     }
 
     /**
@@ -126,44 +86,45 @@ class PDFExtractor
      *
      * @param string $path
      * @param array $excludedFiles
+     *
+     * @return $this
      */
     public static function clearFolder($path, Array $excludedFiles = [])
     {
-        foreach( glob($path . '/*') as $file ) {
-            if( !in_array(basename($file), $excludedFiles) )
-                unlink($file);
-        }
+        self::getInstance();
+        self::$_instance->clearFolderContent($path, $excludedFiles);
+
+        return self::$_instance;
     }
 
     /**
      * Remove directory and content.
      *
      * @param string $path
+     *
+     * @return $this
      */
-    public static function removeDirectory($path) {
-        if(is_dir($path)){
-            $files = glob( $path . '*', GLOB_MARK );
+    public static function removeDirectory($path)
+    {
+        self::getInstance();
+        self::$_instance->destroyDirectory($path);
 
-            foreach( $files as $file ) {
-                self::removeDirectory($file);
-            }
-            rmdir( $path );
-        } elseif(is_file($path)) {
-            unlink( $path );
-        }
+        return self::$_instance;
     }
-
 
     /**
      * Create new directory.
      *
      * @param string $path
+     *
+     * @return $this
      */
     public static function createDirectory($path)
     {
-        if (!file_exists($path)) {
-            mkdir($path, 0777, true);
-        }
+        self::getInstance();
+        self::$_instance->createNewDirectory($path);
+
+        return self::$_instance;
     }
 
     /**
@@ -172,45 +133,25 @@ class PDFExtractor
      * @param File|PDF $file
      * @param string $burstPath
      * @param string $rebuildPath
-     * @param array $keyword
+     * @param array $keywords
+     *
+     * @return $this
      */
-    public static function rebuildPDFByKeyword($file, $burstPath, $rebuildPath, Array $keyword) {
-        self::burst($file, $burstPath);
-        self::createDirectory($rebuildPath);
+    public static function rebuildPDFByKeyword($file, $burstPath, $rebuildPath, Array $keywords) {
+        self::getInstance();
+        self::$_instance->splitPDF($file)->save($burstPath);
 
-        //Get a list of file paths using the glob function.
-        $fileList = glob($burstPath . '*');
+        self::$_instance->searchMultiplePDFByKeywords($burstPath, $keywords)
+                        ->changeFileLocation($rebuildPath)
+                        ->mergePDFByKeywords();
 
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        //Loop through the array that glob returned.
-        foreach($fileList as $filename){
-            if(finfo_file($finfo, $filename) === 'application/pdf') {
-                $file = new PDF($filename);
-                if(is_array($keyword)) {
-                    foreach ($keyword as $key) {
-                        $rebuildLocation = $rebuildPath . $key . '/';
-                        if(self::searchPDF($file, $key)) {
-                            self::createDirectory($rebuildLocation);
-                            self::relocateFile($file, $rebuildLocation);
-                            break;
-                        }
-                    }
-                } else {
-                    if(self::searchPDF($file, $keyword)) {
-                        self::relocateFile($file, $rebuildPath);
-                    }
-                }
-            }
-        }
+        self::$_instance->createNewDirectory($rebuildPath . 'failed_documents/');
 
-        foreach ($keyword as $key) {
-            $directory = $rebuildPath . $key . '/';
-            if (file_exists($directory)) {
-                self::cat($directory, '*.pdf', $directory . $key . '.pdf');
-            }
-            self::clearFolder($directory, [$key . '.pdf']);
-        }
+        self::$_instance->mergePDF($burstPath, '*.pdf')->save($rebuildPath . 'failed_documents/', 'failed.pdf');
 
-        finfo_close($finfo);
+        self::$_instance->clearFolderContent($burstPath);
+
+        return self::$_instance;
     }
+
 }
