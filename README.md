@@ -144,4 +144,26 @@ $PDFExtractor->searchMultiplePDFByKeywords('/location/where/to/burst/', 'wordToS
 
 ```
 
+#### Extract Metadata To Array
+
+Extract metadata to array.
+
+```php
+PDFExtractor::extractMetadata('/path/to/directory/name/')
+    ->save('/location/where/to/save/', 'name_of_file.txt')
+    ->toArray();
+
+```
+
+#### Extract Metadata To String
+
+Extract metadata to string.
+
+```php
+PDFExtractor::extractMetadata('/path/to/directory/name/')
+    ->save('/location/where/to/save/', 'name_of_file.txt')
+    ->toString();
+
+```
+
 

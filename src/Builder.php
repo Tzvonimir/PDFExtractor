@@ -7,6 +7,7 @@ use Illuminate\Http\File;
 class Builder
 {
     protected $command;
+    protected $currentFileLocation;
     protected $suffix = 'pdf_%02d.pdf';
     protected $PDFList = [];
 
@@ -45,6 +46,8 @@ class Builder
         } else {
             $this->command .= ' output ' . $outputLocation . $outputFilename;
         }
+
+        $this->currentFileLocation = $outputLocation . $outputFilename;
 
         return $this->execute($this->command);
     }
@@ -195,6 +198,52 @@ class Builder
         }
 
         return $this;
+    }
+
+    public function extractMeta($file)
+    {
+        if(!($file instanceof File) && !($file instanceof PDF)) {
+            $file = new PDF($file);
+        }
+
+        $this->command = 'pdftk ' . $file->getPath() . '/' . $file->getFilename() . ' dump_data';
+
+        return $this;
+    }
+
+    public function toString($filePath = null)
+    {
+        $filePath = ($filePath) ? $filePath : $this->currentFileLocation;
+        $mimeType = mime_content_type($filePath);
+
+        if ($mimeType === 'application/pdf') {
+            return $this->convertPDFToText($filePath);
+        } else {
+            return file_get_contents($filePath);
+        }
+    }
+
+    public function toArray($filePath = null)
+    {
+        $metadata = $this->toString($filePath);
+        $metadataArray = array();
+
+        $metadata = str_replace('InfoBegin' . PHP_EOL, '', $metadata);
+
+        $asArr = explode( PHP_EOL, $metadata);
+        foreach( $asArr as $val ){
+            $tmp = explode( ': ', $val );
+            if (isset($tmp[0]) && isset($tmp[1])) {
+                $metadataArray[ $tmp[0] ] = $tmp[1];
+            }
+        }
+
+        return $metadataArray;
+    }
+
+    public function convertMetaToString($file)
+    {
+        return $this->extractMeta($file)->save()->toString();
     }
 
     public function execute() {

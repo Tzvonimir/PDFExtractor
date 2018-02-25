@@ -128,6 +128,21 @@ class PDFExtractor extends Builder
     }
 
     /**
+     * Create new directory.
+     *
+     * @param string|PDF|File $file
+     *
+     * @return $this
+     */
+    public static function extractMetadata($file)
+    {
+        self::getInstance();
+        self::$_instance->extractMeta($file);
+
+        return self::$_instance;
+    }
+
+    /**
      * Rebuild PDF by keyword(s).
      *
      * @param File|PDF $file
