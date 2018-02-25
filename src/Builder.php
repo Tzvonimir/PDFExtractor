@@ -128,7 +128,9 @@ class Builder
         $file = ($file) ? $file : $this->PDFList;
         self::$_instance->createNewDirectory($path);
         if($file instanceof File || $file instanceof PDF) {
-            rename($file->getPath() . '/' . $file->getFilename(), $path . $file->getFilename());
+            if(is_file($file->getPath() . '/' . $file->getFilename())) {
+                rename($file->getPath() . '/' . $file->getFilename(), $path . $file->getFilename());
+            }
         } else {
             if (is_array($file)) {
                 foreach ($file as $fileLocation => $name) {
@@ -139,7 +141,9 @@ class Builder
                 }
                 $this->PDFList = $newFileLocation;
             } else {
-                rename($file, $path . substr($file, strrpos($file, '/') + 1));
+                if(is_file($file)) {
+                    rename($file, $path . substr($file, strrpos($file, '/') + 1));
+                }
             }
         }
 
@@ -163,9 +167,9 @@ class Builder
             foreach( $files as $file ) {
                 $this->destroyDirectory($file);
             }
-            rmdir( $path );
+            rmdir($path);
         } elseif(is_file($path)) {
-            unlink( $path );
+            unlink($path);
         }
     }
 
@@ -173,7 +177,6 @@ class Builder
         $PDFList = ($PDFList) ? $PDFList : $this->PDFList;
         foreach ($PDFList as $fileLocation => $name) {
             $directory = $fileLocation . $name . '/';
-            //dd($directory);
             if (file_exists($directory)) {
                 self::$_instance->mergePDF($directory, '*.pdf')->save($directory, $name . '.pdf');
             }
