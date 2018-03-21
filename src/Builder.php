@@ -136,7 +136,7 @@ class Builder
                 foreach ($file as $fileLocation => $name) {
                     $pdf = new PDF($fileLocation);
                     self::$_instance->createNewDirectory($path . $name . '/');
-                    $newFileLocation[$path] = $name;
+                    $newFileLocation[$path][] = $name;
                     $this->changeFileLocation($path . $name . '/', $pdf);
                 }
                 $this->PDFList = $newFileLocation;
@@ -176,11 +176,21 @@ class Builder
     public function mergePDFByKeywords($PDFList = null) {
         $PDFList = ($PDFList) ? $PDFList : $this->PDFList;
         foreach ($PDFList as $fileLocation => $name) {
-            $directory = $fileLocation . $name . '/';
-            if (file_exists($directory)) {
-                self::$_instance->mergePDF($directory, '*.pdf')->save($directory, $name . '.pdf');
+            if(is_array($name)) {
+                foreach ($name as $n) {
+                    $directory = $fileLocation . $n . '/';
+                    if (file_exists($directory)) {
+                        self::$_instance->mergePDF($directory, '*.pdf')->save($directory, $n . '.pdf');
+                    }
+                    self::$_instance->clearFolderContent($directory, [$n . '.pdf']);
+                }
+            } else {
+                $directory = $fileLocation . $name . '/';
+                if (file_exists($directory)) {
+                    self::$_instance->mergePDF($directory, '*.pdf')->save($directory, $name . '.pdf');
+                }
+                self::$_instance->clearFolderContent($directory, [$name . '.pdf']);
             }
-            self::$_instance->clearFolderContent($directory, [$name . '.pdf']);
         }
     }
 
