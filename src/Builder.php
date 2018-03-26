@@ -204,7 +204,7 @@ class Builder
                 $file = new PDF($filename);
                 foreach ($keywords as $keyword) {
                     if(self::$_instance->searchPDFByKeywords($file, $keyword)) {
-                        $this->PDFList[$file->getFullPath()] = $keyword;
+                        $this->PDFList[$file->getFullPath()] = preg_replace('/[^A-Za-z0-9]/', "", $keyword);
                     }
                 }
             }
